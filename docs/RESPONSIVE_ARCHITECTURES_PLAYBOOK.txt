@@ -1,0 +1,332 @@
+RESPONSIVE ARCHITECTURES PLAYBOOK — PROJECT RULE (TXT)
+Description: Standards, architectures, and senior-practice guardrails for building “fit-first-time” responsive views across websites and web applications.
+Scope: This rule is intended to be included in your project (Cursor User or Project Rule). It blends standards + practical patterns, covering layout, typography, media, interaction, accessibility, performance, QA, and governance.
+
+OPERATING GOVERNANCE (MANDATORY)
+- Ask-first: Every numeric/style token is configurable per invocation. Always ask for missing values and confirm defaults:
+  DUR_MS, DELAY_MS, OPACITY, X_PX, Y_PX, Z_PX, SCALE, ROT_DEG, SKEW_DEG, BLUR_PX, RADIUS_PX, SPREAD_PX, COLOR_RGBA, EASE
+- Motion: Prefer transform/opacity; honor @media (prefers-reduced-motion: reduce).
+- Viewport: Use <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">.
+- Dark/Light: Advertise color-scheme (meta or :root { color-scheme: light dark; }).
+- Safe areas: Use env(safe-area-inset-*) on fixed/sticky UI when viewport-fit=cover.
+- Coding style: Mobile-first CSS; component-first, container-query driven where possible.
+
+=====================================================================================================================
+1) RESPONSIVE ARCHITECTURES (CHOOSE & COMBINE PRAGMATICALLY)
+
+1.1 Mobile-first (min-width up)
+- Idea: Start from smallest reliable layout, add enhancements as space/capabilities grow.
+- Benefits: Less override churn; lighter CSS for small devices.
+- How: Declare base styles without media queries; layer min-width breakpoints incrementally.
+
+1.2 Content-out / Intrinsic design
+- Idea: Let content define min/max sizes; avoid arbitrary breakpoints where possible.
+- Tools: min/max-content, clamp(), auto-fit/auto-fill with minmax(), intrinsic ratios, object-fit.
+- Pattern: repeat(auto-fit, minmax(min(100%, CARD_MIN), 1fr)) for fluid card grids.
+
+1.3 Container-query-first components
+- Idea: Components adapt to the size of their containers, not the viewport.
+- Usage: .component { container-type: inline-size; } @container (width >= 42rem) {…}
+- Benefit: Reduces global media-query sprawl; components are portable & nestable.
+
+1.4 Layout primitives architecture
+- Idea: Build a small set of primitives (Stack, Cluster, Grid, Sidebar, Switcher, Cover, Reel) and compose.
+- Result: Dramatically simpler markup; consistent gutters, alignment, and wrapping.
+
+1.5 Token-driven theming (design tokens)
+- Idea: Centralize spacing, color, type, radius, shadow, motion in CSS custom properties.
+- Benefit: Easy density modes, brand theming, light/dark switches, and per-surface elevation.
+
+1.6 Density modes (comfortable/compact/cozy)
+- Idea: Three density presets with spacing & type scales that fit product contexts.
+- Guidance: Default to Comfortable on marketing; Compact on data-heavy apps; allow user preference.
+
+1.7 Progressive disclosure layout
+- Idea: Show essentials first; reveal complexity as space & intent increase.
+- Tactics: Collapsible filters, drawer panes, responsive sidebar → bottom sheet on small screens.
+
+1.8 Hybrid breakpoint strategy
+- Idea: Minimal global rails (e.g., 480, 768, 1024, 1440) + heavy use of container queries inside components.
+- Benefit: Predictable macro-shifts + resilient components.
+
+=====================================================================================================================
+2) LAYOUT SYSTEM — IMPLEMENTATION PATTERNS
+
+2.1 Grid baseline
+- Container: max-inline-size via clamp(), centered with auto margins.
+- Grid: display:grid; gap via tokens; prefer fractional units; avoid hard px except rails.
+- Example:
+  .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: var(--space-4); }
+
+2.2 Flex for 1-D flows
+- Use flex for rows/columns with wrapping; min-width:0 on flex items to avoid overflow.
+
+2.3 Sidebars & “sidebar-switcher”
+- Desktop: sticky sidebar + content; Mobile: switcher turning into top filter bar or bottom sheet.
+- Pattern (container query):
+  .layout { container-type:inline-size; }
+  @container (width >= 64rem) { .layout { grid-template-columns: 18rem 1fr; } }
+  @container (width < 64rem)  { .filters { position: sticky; top: 0; } }
+
+2.4 Sticky & safe-area aware chrome
+- Sticky header/footer with padding that includes env(safe-area-inset-*).
+- Avoid 100vh traps — prefer 100dvh or min(100dvh, 100svh) when appropriate.
+
+2.5 Foldables & dual-screen
+- Avoid critical UI at hinge center; keep gutters generous; test orientation swaps; expose a no-parallax mode for wide hinges.
+
+=====================================================================================================================
+3) TYPOGRAPHY — FLUID & ACCESSIBLE
+
+3.1 Fluid scale with clamp()
+- Example steps:
+  --fs-0: clamp(0.875rem, 0.80rem + 0.2vw, 1rem);
+  --fs-1: clamp(1rem, 0.90rem + 0.6vw, 1.25rem);
+  --fs-2: clamp(1.25rem, 1.00rem + 1.2vw, 1.75rem);
+  --fs-3: clamp(1.75rem, 1.10rem + 2.2vw, 3rem);
+
+3.2 Readability rails
+- Body: 16–18px; line-height 1.4–1.6; measure 60–75ch.
+- Headings: tighter line-height (1.05–1.2), bounded with clamp().
+- Contrast: meet AA minimums; AAA for long-form if feasible.
+
+3.3 Variable fonts & performance
+- Subset and preload; prefer variable over many statics; avoid faux bold/italic.
+
+=====================================================================================================================
+4) RESPONSIVE MEDIA — IMAGES, VIDEO, ICONS
+
+4.1 Resolution switching & art direction
+- Use srcset/sizes; <picture> for different crops/formats per breakpoint/orientation.
+- Lazy-load offscreen images; decoding="async"; specify width/height to minimize CLS.
+
+4.2 Aspect ratios & object-fit
+- Enforce aspect-ratio; use object-fit: cover/contain; avoid layout jumps on media load.
+
+4.3 Icons & vector
+- Prefer SVG (symbol sprites); respect prefers-color-scheme; ensure sufficient tap size on touch.
+
+4.4 Video & LCP
+- Poster images; lazy when offscreen; prefer muted, playsinline, loop only if purposeful; provide controls and captions.
+
+=====================================================================================================================
+5) CAPABILITY QUERIES & INPUT MODES
+
+5.1 Hover/pointer
+- @media (hover: hover) and (pointer: fine) => richer hover hints.
+- @media (hover: none), (pointer: coarse) => larger targets, no hover-only affordances.
+
+5.2 Color scheme & reduced motion
+- @media (prefers-color-scheme: dark) => apply dark tokens.
+- @media (prefers-reduced-motion: reduce) => disable animations/transitions.
+
+5.3 Orientation & navigation bars
+- Use orientation queries sparingly; rely on dvh for height-related layouts.
+
+=====================================================================================================================
+6) INTERACTION & NAVIGATION PATTERNS
+
+6.1 App bars & navigation
+- Desktop: top app bar + left rail; Mobile: bottom nav (3–5 items) or FAB for primary action.
+- Avoid double scroll chaining; keep focus order logical when layouts shift.
+
+6.2 Drawers, sheets, and modals
+- Use modal for blocking/critical; use sheet/drawer for contextual tasks; ensure escape/close affordances; trap focus.
+
+6.3 Tables & dense data
+- Techniques: column priority (hide low-priority), cardified rows, horizontal scroll with sticky first column, summary rows.
+- Provide CSV export; support column toggles; ensure keyboard accessibility.
+
+6.4 Forms
+- Inputs full-width on small screens; group related fields; auto-advance where safe; show inline validation + live regions.
+
+=====================================================================================================================
+7) ACCESSIBILITY (WCAG 2.2+) & INTERNATIONALIZATION
+
+7.1 Targets & focus
+- Targets ≥ 24x24 CSS px (prefer 40–48 for touch).
+- Always show :focus-visible rings; no outline: none without replacement.
+
+7.2 Source order & reading flow
+- DOM order ≈ visual order; tab order must remain logical across breakpoints.
+
+7.3 Color & states
+- Don’t rely on color alone; add icons/labels; provide error/success live regions.
+
+7.4 Localization & RTL
+- Use logical properties (margin-inline-start) over left/right; test mirroring & mixed LTR/RTL content.
+- Be cautious with iconography that implies direction; flip where needed.
+
+7.5 Virtual keyboards
+- Avoid elements locked at bottom 0 that collide with VK; add padding-bottom with safe-area env() and input focus heuristics.
+
+=====================================================================================================================
+8) PERFORMANCE & DELIVERY
+
+8.1 Budgets & metrics
+- LCP < 2.5s; CLS < 0.1; INP < 200ms; TTFB < 0.8s (targets vary by app type).
+
+8.2 Ship only what you show
+- Lazy-load non-critical media/iframes; code-split; defer non-critical JS; prune CSS.
+
+8.3 Fonts & CLS
+- Preload critical fonts; use font-display: swap/optional; stabilize layout with explicit sizes.
+
+8.4 Animations
+- Keep durations tight; no infinite loops by default; avoid animating layout properties.
+
+=====================================================================================================================
+9) VIEWPORT & DEVICE EDGE CASES
+
+9.1 Dynamic viewport units
+- Prefer dvh/dvw; provide vh/vw fallback; consider svh/lvh when needing “small” or “large” bars behavior.
+
+9.2 Safe areas & cutouts
+- Apply env(safe-area-inset-*) to fixed/sticky UI; verify both orientations.
+
+9.3 In-app browsers & overlays
+- Test Telegram/Instagram/FB in-app browsers; verify viewport resizing, VK behavior, and permission prompts.
+
+9.4 Desktop ultra-wide & 4K
+- Add max-inline-size rails; increase white space; avoid over-expansion of line length.
+
+=====================================================================================================================
+10) SENIOR LESSONS-LEARNED (COMMON PITFALLS & ANTI-PATTERNS)
+
+10.1 “100vh” traps
+- Don’t rely on 100vh on mobile; use 100dvh or flexible min-height; test scrolling chrome collapse.
+
+10.2 Hover-only cues
+- If a state is only discoverable via hover, mobile misses it. Provide visible affordances or alternate triggers.
+
+10.3 Absolute positioning for layout
+- Avoid absolute for primary layout; it breaks with dynamic height/keyboard; use Grid/Flex.
+
+10.4 Font loading jank
+- Large CLS from late-loading fonts; subset/preload; give explicit dimensions; use fallback stacks.
+
+10.5 Images without sizes
+- Missing width/height creates layout shifts; define dimensions or aspect-ratio.
+
+10.6 Monolithic breakpoints
+- Too many global media queries = brittle; prefer container queries within components.
+
+10.7 Over-animated UIs
+- Motion should communicate state, not entertain; measure impact; offer motion settings.
+
+10.8 “Desktop-first” grids
+- Reverse engineering for mobile bloats code; start mobile-first or content-out.
+
+=====================================================================================================================
+11) QA MATRIX & TESTING WORKFLOWS
+
+11.1 Devices & sizes
+- Smoke-test rails: 360x740, 390x844, 414x896, 768x1024, 820x1180, 1024x1366, 1280x800, 1440x900, 1920x1080, 2560x1440.
+- Orientation swaps; notch vs non-notch.
+
+11.2 Inputs
+- Keyboard-only pass; screen reader quick pass; touch precision (fat finger); mouse hover fidelity.
+
+11.3 Network & perf
+- Throttle network; disable cache; test cold LCP; verify lazy-load thresholds.
+
+11.4 Print styles (as needed)
+- Provide a minimal print CSS for invoices/reports; hide nav; page-breaks; high-contrast text.
+
+=====================================================================================================================
+12) CODE SNIPPETS — COPY/PASTE STARTERS
+
+12.1 Global CSS tokens
+:root{
+  --space-1: clamp(4px, 0.4vw, 8px);
+  --space-2: clamp(8px, 0.8vw, 12px);
+  --space-3: clamp(12px, 1.2vw, 16px);
+  --space-4: clamp(16px, 1.6vw, 24px);
+  --container-sm: min(100% - 2rem, 42rem);
+  --container-md: min(100% - 3rem, 64rem);
+  --container-lg: min(100% - 4rem, 80rem);
+  --fs-0: clamp(0.875rem, 0.80rem + 0.2vw, 1rem);
+  --fs-1: clamp(1rem,     0.90rem + 0.6vw, 1.25rem);
+  --fs-2: clamp(1.25rem,  1.00rem + 1.2vw, 1.75rem);
+  --fs-3: clamp(1.75rem,  1.10rem + 2.2vw, 3rem);
+}
+
+12.2 Fluid grid (no media queries)
+.grid {
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: var(--space-4);
+}
+
+12.3 Component with container queries
+.card-list{ container-type:inline-size; }
+@container (width >= 42rem) {
+  .card{ display:grid; grid-template-columns: 2fr 1fr; gap: var(--space-3); }
+}
+
+12.4 Safe-area footer
+.footer{
+  position: sticky; bottom: 0;
+  padding: 12px calc(16px + env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
+}
+
+12.5 Viewport helpers
+.full-bleed{ min-height: 100vh; min-height: 100dvh; }
+.container{ width: var(--container-lg); margin-inline:auto; padding-inline: var(--space-4); }
+
+12.6 Capability-aware interactions
+@media (hover:hover) and (pointer:fine){
+  .btn:hover{ transform: translateY(-2px); }
+}
+@media (hover:none), (pointer:coarse){
+  .btn{ min-height: 44px; }
+}
+
+12.7 Images with sizes
+<picture>
+  <source type="image/avif" srcset="/img-800.avif 800w, /img-1400.avif 1400w"
+          sizes="(min-width: 64rem) 50vw, 90vw">
+  <img src="/img-800.jpg" alt="..." loading="lazy" decoding="async" width="1400" height="933">
+</picture>
+
+12.8 Form layout (mobile-first)
+.form{ display:grid; gap: var(--space-3); }
+.input{ min-height: 44px; width: 100%; }
+
+=====================================================================================================================
+13) PROJECT INTEGRATION — CURSOR RULE USAGE
+
+13.1 User Rule (global)
+---
+description: Responsive Architectures — standards & senior practices for perfect-fit views.
+globs: ["**/*"]
+alwaysApply: true
+---
+@./RESPONSIVE_ARCHITECTURES_PLAYBOOK.txt
+
+13.2 Project Rule (.cursor/rules/)
+- Save this file as docs/RESPONSIVE_ARCHITECTURES_PLAYBOOK.txt
+- Create .cursor/rules/responsive-architectures.mdc with:
+---
+description: Responsive Architectures Playbook — apply across UI work.
+globs:
+  - "app/**"
+  - "src/**"
+  - "components/**"
+  - "**/*.css"
+alwaysApply: true
+---
+@docs/RESPONSIVE_ARCHITECTURES_PLAYBOOK.txt
+
+=====================================================================================================================
+14) CHECKLIST — “GREENLIGHT FOR RELEASE”
+
+- Meta viewport present; viewport-fit=cover; color-scheme declared.
+- dvh/dvw used where full-height; vh fallback present; safe-area padding applied.
+- Layout uses Grid/Flex; container queries for components; minimal global rails.
+- Fluid typography bounded by clamp(); readable measures and LH.
+- srcset/sizes or picture used; lazy media; dimensions to avoid CLS.
+- Capability queries for hover/pointer; touch targets sized; keyboard flow validated.
+- Motion respects reduced-motion; transform/opacity only; durations consistent.
+- Performance budgets set; non-critical assets lazy/deferred; fonts subset/preloaded.
+- QA matrix passed on phones, tablets, laptops, 4K; orientations & in-app browsers checked.
