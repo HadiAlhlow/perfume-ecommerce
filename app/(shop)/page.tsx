@@ -5,7 +5,7 @@ import { HeroContent } from '@/components/hero/HeroContent';
 import { ProductGrid } from '@/components/products/ProductGrid';
 import { GSAPScrollReveal } from '@/components/animations/GSAPScrollReveal';
 import { ScrollVideoPlayer } from '@/components/animations/ScrollVideoPlayer';
-import Link from 'next/link';
+import { CategoryScrollShowcase } from '@/components/categories/CategoryScrollShowcase';
 
 export default function HomePage() {
   // Try to use the video, fallback to a placeholder if not found
@@ -28,39 +28,14 @@ export default function HomePage() {
         />
       </section>
 
-      {/* Category Showcase - Bento Grid */}
+      {/* Category Showcase - Immersive Scroll */}
       <section className="container-lg mx-auto px-4 py-20">
         <GSAPScrollReveal direction="up">
           <h2 className="text-4xl md:text-5xl font-bold text-center mb-12">
             Explore Our Categories
           </h2>
         </GSAPScrollReveal>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
-          {[
-            { name: 'Floral', slug: 'floral', description: 'Delicate and romantic' },
-            { name: 'Woody', slug: 'woody', description: 'Warm and earthy' },
-            { name: 'Fresh', slug: 'fresh', description: 'Crisp and invigorating' },
-            { name: 'Oriental', slug: 'oriental', description: 'Exotic and sensual' },
-            { name: 'Citrus', slug: 'citrus', description: 'Bright and energizing' },
-          ].map((category, index) => (
-            <GSAPScrollReveal
-              key={category.slug}
-              direction="up"
-              delay={index * 100}
-            >
-              <Link
-                href={`/categories/${category.slug}`}
-                className="block p-8 glass rounded-2xl hover:shadow-lift transition-all duration-300 hover:-translate-y-2 group h-full flex flex-col"
-              >
-                <h3 className="text-2xl font-bold mb-2 group-hover:text-accent-primary transition-colors">
-                  {category.name}
-                </h3>
-                <p className="text-text-secondary flex-grow">{category.description}</p>
-              </Link>
-            </GSAPScrollReveal>
-          ))}
-        </div>
+        <CategoryScrollShowcase />
       </section>
 
       {/* Featured Products */}

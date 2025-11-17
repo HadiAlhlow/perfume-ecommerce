@@ -3,7 +3,6 @@ import { Inter } from 'next/font/google';
 import '@/styles/globals.css';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
-import { ScrollProgressIndicator } from '@/components/animations/ScrollProgressIndicator';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
@@ -20,7 +19,6 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body>
-        <ScrollProgressIndicator />
         <Header />
         <main className="min-h-screen">{children}</main>
         <Footer />

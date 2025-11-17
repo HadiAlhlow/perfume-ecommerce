@@ -7,6 +7,7 @@ A modern, feature-rich e-commerce platform for selling perfumes, built with Next
 - 🎨 **Modern UI Design**: Glassmorphism, 3D effects, kinetic typography, and microinteractions
 - 📱 **Fully Responsive**: Mobile-first design with container queries
 - 🎬 **Scroll Animations**: GSAP-powered scroll-triggered animations and parallax effects
+- 🌀 **Immersive Category Scroll**: Pinned, full-height category totems with hover-activated placeholder videos (swap with brand footage later)
 - 🛒 **Shopping Cart**: Persistent cart with Zustand state management
 - 💳 **Payment Integration**: Stripe and PayPal support
 - 📦 **Order Tracking**: Complete order management and tracking system
